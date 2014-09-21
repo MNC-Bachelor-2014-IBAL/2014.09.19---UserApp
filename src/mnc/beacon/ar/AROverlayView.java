@@ -42,11 +42,6 @@ public class AROverlayView extends View implements SensorEventListener {
 	private List<ARData> mDataList;
 	private ARHandler mARHandler;
 	private RectF mPopRect;
-	private RectF mFirstRect;
-	private RectF mSecondRect;
-	private RectF mThirdRect;
-	private RectF mFourthRect;
-	private RectF mFifthRect;
 	private Paint mPopPaint;
 	private int mVisibleDistance = 3;
 	private float mTouchedY;
@@ -54,6 +49,7 @@ public class AROverlayView extends View implements SensorEventListener {
 	private boolean mScreenTouched = false;
 	private int mCounter = 0;
 	private Paint mTouchEffectPaint;
+	private Bitmap mIconBitmap;
 	private Bitmap mFirstIconBitmap;
 	private Bitmap mSecondIconBitmap;
 	private Bitmap mThirdIconBitmap;
@@ -66,15 +62,13 @@ public class AROverlayView extends View implements SensorEventListener {
 	public static final String SECOND = "SECOND";
 	public static final String THIRD = "THIRD";
 	public static final String FOURTH = "FOURTH";
-	public static final String FIFTH = "FIFTH";
-	
+	public static final String FIFTH = "FIFTH";	
 	BeaconEventFlag beaconEventOccur;
 
 	public AROverlayView(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
 		mContext = (ARActivity) context;
-		// 비트맵, 센서, 페인트, 핸들러 초기화
 		// initialize bitmap, sensor, paint, Handler
 		initBitmap();
 		initSensor(context);
@@ -82,26 +76,27 @@ public class AROverlayView extends View implements SensorEventListener {
 		initHandler();
 	}
 	
-	// onSensorChanged에서 센서값 TYPE_ORIENTATION이 일정한 시간마다 INVALIDATE되어 실행됨
-	// 정보를 계속 그리면서 표현, data를 해석하면서 아이템을 그림
+	// execute onSensorChanged when invalidating sensor value TYPE_ORIENTATION 
+	// present information, interpret data and draw marker
 	public void onDraw(Canvas canvas) {
 		canvas.save();
-		// 안드로이드 2.1이하에서는 카메라 화면이 오른쪽으로 90도 돌아간 화면으로 나옴
-		// 화면을 돌리기 위하여 사용\
+		// rotate screen
 		canvas.rotate(270, mWidth / 2, mHeight / 2);
 		// initialize Rect
 		initRectFs();
 		// initialize Handler
 		initHandler();
-		// 아이템이 터치된 상태일때 팝업을 그림
+
+		// draw popup when item touched
 		if (mTouched == true) {
 			drawPopup(canvas);
 		}
-		// data를 읽어들이고, drawGrid를 실행시켜 마커들을 그림
+
+		// read data, execute drawGrid and draw marker
 		interpret(canvas);
-		// 회전된 카메라를 원상복귀함
+		// restore rotated camera
 		canvas.restore();
-		// 스크린이 터치되었을때 효과를 그림
+		// draw effect when screen touched
 		if (mScreenTouched == true && mCounter < 15) {
 			drawTouchEffect(canvas);
 			mCounter++;
@@ -111,7 +106,7 @@ public class AROverlayView extends View implements SensorEventListener {
 		}
 	}
 
-	// 스크린이 터치될때의 효과를 그림 원 3개를 물결처럼 그림
+	// draw effect when screen touched
 	private void drawTouchEffect(Canvas pCanvas) {
 		// TODO Auto-generated method stub
 		pCanvas.drawCircle(mTouchedX, mTouchedY, mCounter * 1,
@@ -122,11 +117,11 @@ public class AROverlayView extends View implements SensorEventListener {
 				mTouchEffectPaint);
 	}
 
-	// 스크린이 터치되었을때 좌표를 해석하고 처리
+	// handling and interpret coordinate when screen touched
 	public boolean onTouchEvent(MotionEvent event) {
 		// TODO Auto-generated method stub
 
-		// 화면이 회전되었기에 좌표도 변환함
+		// transfer coordinate 
 		float convertedX, convertedY, temp;
 		convertedX = event.getX();
 		convertedY = event.getY();
@@ -141,8 +136,8 @@ public class AROverlayView extends View implements SensorEventListener {
 
 		mScreenTouched = true;
 		
-		// 팝업을 터치시 처리
-		// 터치시 정보 페이지로 이동
+		// handling when touching Pop up
+		// touch = true -> go to the web site
 		if (mTouched == true) {
 			if (convertedX > mPopRect.left - mWidth / 2
 					&& convertedX < mPopRect.right - mWidth / 2
@@ -157,8 +152,8 @@ public class AROverlayView extends View implements SensorEventListener {
 			}
 		}
 
-		// 아이템을 터치시 처리
-		// 터치시 플래그, 터치된 아이템 번호 설정
+		// handle item when touched
+		// set touched item number, touch flag
 		mTouched = false;
 		PointF tPoint = new PointF();
 		Iterator<PointF> pointIterator = mPointFList.iterator();
@@ -181,11 +176,16 @@ public class AROverlayView extends View implements SensorEventListener {
 
 	private void initBitmap() {
 		// TODO Auto-generated method stub
+		mIconBitmap = BitmapFactory.decodeResource(getResources(),
+				R.drawable.arrow);
+		mIconBitmap = Bitmap.createScaledBitmap(mIconBitmap, 130,
+				130, true);
+		
 		mFirstIconBitmap = BitmapFactory.decodeResource(getResources(),
 				R.drawable.icon);
 		mFirstIconBitmap = Bitmap.createScaledBitmap(mFirstIconBitmap, 130,
 				130, true);
-
+		
 		mSecondIconBitmap = BitmapFactory.decodeResource(getResources(),
 				R.drawable.icon);
 		mSecondIconBitmap = Bitmap.createScaledBitmap(mSecondIconBitmap, 100,
@@ -207,8 +207,8 @@ public class AROverlayView extends View implements SensorEventListener {
 				100, true);
 	}
 
-	// 센서 초기화
-	// TYPE_ORIENTATION 사용할 수 있게 설정
+	// sensor initialize
+	// set TYPE_ORIENTATION
 	private void initSensor(Context context) {
 		// TODO Auto-generated method stub
 		mSensorManager = (SensorManager) context
@@ -218,8 +218,8 @@ public class AROverlayView extends View implements SensorEventListener {
 				SensorManager.SENSOR_DELAY_UI);
 	}
 
-	// Handler 초기화
-	// 처음에는 First floor 읽음
+	// initialize Handler
+	// read First floor
 	private void initHandler() {
 		// TODO Auto-generated method stub
 		if(FIRST.equals(mContext.getFloor())) {
@@ -249,8 +249,8 @@ public class AROverlayView extends View implements SensorEventListener {
 		}
 	}
 
-	// 페인트 초기화
-	// 그려질 여러 메뉴, 아이템의 페인트 설정
+	// initialize paint
+	// set paint of marker, item
 	private void initPaints() {
 		// TODO Auto-generated method stub
 		mShadowXMargin = 2;
@@ -265,7 +265,7 @@ public class AROverlayView extends View implements SensorEventListener {
 		mShadowPaint.setTextSize(25);
 
 		mPopPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mPopPaint.setColor(Color.rgb(131, 139, 131));
+		mPopPaint.setColor(Color.rgb(250, 250, 210));
 
 		mTouchEffectPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTouchEffectPaint.setColor(Color.rgb(205, 92, 92));
@@ -273,44 +273,17 @@ public class AROverlayView extends View implements SensorEventListener {
 		mTouchEffectPaint.setStyle(Paint.Style.STROKE);
 	}
 
-	// 사각형 초기화
-	// 보여질 여러 사각형 좌표, 페인트 설정
+	// initialize Rect
+	// set paint, Rect coordinate
 	private void initRectFs() {
 		// TODO Auto-generated method stub
-		int themeRectWidth = (mHeight - (mHeight / 20 * 2)) / 6;
-
-		mFirstRect = new RectF((float) ((mWidth - mHeight) / 2) + mHeight / 20
-				+ (themeRectWidth * 0), (float) (-(mWidth - mHeight) / 2)
-				+ mHeight / 20, (float) ((mWidth - mHeight) / 2) + mHeight / 20
-				+ (themeRectWidth * 1), (float) -(mHeight / 20));
-
-		mSecondRect = new RectF((float) ((mWidth - mHeight) / 2) + mHeight
-				/ 20 + (themeRectWidth * 1), (float) (-(mWidth - mHeight) / 2)
-				+ mHeight / 20, (float) ((mWidth - mHeight) / 2) + mHeight / 20
-				+ (themeRectWidth * 2), (float) -(mHeight / 20));
-
-		mThirdRect = new RectF((float) ((mWidth - mHeight) / 2) + mHeight
-				/ 20 + (themeRectWidth * 2), (float) (-(mWidth - mHeight) / 2)
-				+ mHeight / 20, (float) ((mWidth - mHeight) / 2) + mHeight / 20
-				+ (themeRectWidth * 3), (float) -(mHeight / 20));
-
-		mFourthRect = new RectF((float) ((mWidth - mHeight) / 2) + mHeight
-				/ 20 + (themeRectWidth * 3), (float) (-(mWidth - mHeight) / 2)
-				+ mHeight / 20, (float) ((mWidth - mHeight) / 2) + mHeight / 20
-				+ (themeRectWidth * 4), (float) -(mHeight / 20));
-
-		mFifthRect = new RectF((float) ((mWidth - mHeight) / 2) + mHeight / 20
-				+ (themeRectWidth * 4), (float) (-(mWidth - mHeight) / 2)
-				+ mHeight / 20, (float) ((mWidth - mHeight) / 2) + mHeight / 20
-				+ (themeRectWidth * 5), (float) -(mHeight / 20));
-
 		mPopRect = new RectF((float) ((mWidth - mHeight) / 2) + mHeight / 20,
 				(float) ((mHeight / 5) * 4), (float) mWidth
 						- ((mWidth - mHeight) / 2) - mHeight / 20,
 				(float) mHeight + ((mHeight / 5)) - 30);			
 	}
 
-	// data 터치시 나타나는 popup 그림
+	// draw Popup when touching marker
 	private void drawPopup(Canvas pCanvas) {
 		// TODO Auto-generated method stub
 		pCanvas.drawRoundRect(mPopRect, 20, 20, mPopPaint);
@@ -318,7 +291,7 @@ public class AROverlayView extends View implements SensorEventListener {
 		int xMargin = 20;
 		int yMargin = 0;
 
-		// 터치된 아이템을 이용하여 이름이 무엇인지 알아내고 보여줌
+		// show name of touched marker
 		String tName = mPointHashMap.get(mTouchedItem);
 		pCanvas.drawText(tName, ((mWidth - mHeight) / 2) + mHeight / 20
 				+ xMargin + mShadowXMargin, ((mHeight / 5) * 4 + 40) + yMargin
@@ -328,22 +301,22 @@ public class AROverlayView extends View implements SensorEventListener {
 				+ xMargin, ((mHeight / 5) * 4 + 40) + yMargin, mPaint);
 	}
 
-	// 선택된 아이콘의 마커를 그림
-	// 현재의 위치정보와 마커의 위치정보를 이용하여 두 위치간의 각도를 계산하고,
-	// 현재 기기의 방향이 동쪽 기준 각도가 몇인지를 참고로
-	// 기기 화면에 계속 새로고침됨
-	// 두 위치간의 거리 또한 표시
-	// 정면이 90도라하였을때 75도에서 105도 사이 30도가 시야각
+	// draw marker
+	// check current position and marker position, calculate angle between two location.
+	// reference angle by direction of current phone,
+	// refresh screen
+	// draw distance between two location
+	// when the front angle is 90, between 75~105 viewing angle
 	private PointF drawGrid(double tAx, double tAy, double tBx, double tBy,
 			Canvas pCanvas, Paint pPaint, String name, String theme) {
 		// TODO Auto-generated method stub
 
-		// 현재 위치와 마커의 위치를 계산하는 공식
+		// calculate current position and marker position
 		double mXDegree = (double) (Math.atan((double) (tBy - tAy)
 				/ (double) (tBx - tAx)) * 180.0 / Math.PI);
-		float mYDegree = mYCompassDegree; // 기기의 기울임각도
+		float mYDegree = mYCompassDegree; // phone gradient angle
 
-		// 4/4분면을 고려하여 0~360도가 나오게 설정
+		// consider quadrant, set 0~360 angle 
 		if (tBx > tAx && tBy > tAy) {
 			;
 		} else if (tBx < tAx && tBy > tAy) {
@@ -353,30 +326,63 @@ public class AROverlayView extends View implements SensorEventListener {
 		} else if (tBx > tAx && tBy < tAy) {
 			mXDegree += 360;
 		}
-
-		// 두 위치간의 각도에 현재 스마트폰이 동쪽기준 바라보고 있는 방향 만큼 더해줌
-		// 360도(한바퀴)가 넘었으면 한바퀴 회전한것이기에 360를 빼줌
+		
+		// if angle more than 360, then -360
 		if (mXDegree + mXCompassDegree < 360) {
 			mXDegree += mXCompassDegree;
 		} else if (mXDegree + mXCompassDegree >= 360) {
 			mXDegree = mXDegree + mXCompassDegree - 360;
 		}
 
-		// 계산된 각도 만큼 기기 정중앙 화면 기준 어디에 나타날지 계산함
-		// 정중앙은 90도, 시야각은 30도로 75 ~ 105 사이일때만 화면에 나타남
+		// calculate marker position angle
+		// middle angle 90, viewing angle is 30(75~105)
 		float mX = 0;
 		float mY = 0;
 
 		if (mXDegree > 75 && mXDegree < 105) {
-			if (mYDegree > -105 && mYDegree < -75) {
+			if (mYDegree > -105 && mYDegree < -80) {
 				mX = (float) mWidth
 						- (float) ((mXDegree - 75) * ((float) mWidth / 30));
 				mYDegree = -(mYDegree);
 				mY = (float) (mYDegree * ((float) mHeight / 180));
 			}
 		}
+		
+		if (mXDegree > 75 && mXDegree < 105) {
+			if (mYDegree > -50 && mYDegree < -0) {
+				mX = (float) mWidth
+						- (float) ((mXDegree - 75) * ((float) mWidth / 30));
+				mYDegree = -(mYDegree);
+				mY = (float) (mYDegree * ((float) mHeight / 180));
+				
+				// calculate distance
+				int distance = 50;
+				Bitmap tIconBitmap = null;
+				if (theme.equals("FIRST")) {
+					tIconBitmap = mIconBitmap;
+				}
+				
+				int iconWidth, iconHeight;
+				iconWidth = tIconBitmap.getWidth();
+				iconHeight = tIconBitmap.getHeight();
 
-		// 두 위치간의 거리를 계산함
+				// draw marker(icon, name, distance)
+				// distance < 1000m
+				if (distance <= mVisibleDistance * 1000) {
+					if (distance < 1000) {
+						pCanvas.drawBitmap(tIconBitmap, mX - (iconWidth / 2), mY
+								- (iconHeight / 2), pPaint);
+					} 
+				}
+				
+				// return transfered coordinate
+				PointF tPoint = new PointF();
+				tPoint.set(mX - mWidth / 2, mY - mHeight / 2);
+				return tPoint;
+			}
+		}
+
+		// calculate distance
 		Location locationA = new Location("Point A");
 		Location locationB = new Location("Point B");
 
@@ -386,7 +392,7 @@ public class AROverlayView extends View implements SensorEventListener {
 		locationB.setLongitude(tBx);
 		locationB.setLatitude(tBy);
 
-		int distance = 50;
+		int distance = (int) locationA.distanceTo(locationB);
 
 		Bitmap tIconBitmap = null;
 		if (theme.equals("FIRST")) {
@@ -405,8 +411,8 @@ public class AROverlayView extends View implements SensorEventListener {
 		iconWidth = tIconBitmap.getWidth();
 		iconHeight = tIconBitmap.getHeight();
 
-		// 마커에 해당하는 아이콘과 이름, 거리를 출력
-		// 거리는 1000미터 이하
+		// draw marker(icon, name, distance)
+		// distance < 1000m
 		if (distance <= mVisibleDistance * 1000) {
 			if (distance < 1000) {
 				pCanvas.drawBitmap(tIconBitmap, mX - (iconWidth / 2), mY
@@ -430,24 +436,24 @@ public class AROverlayView extends View implements SensorEventListener {
 
 			} 
 		}
-		// 현재의 회전되기전의 좌표를 회전된 좌표로 변환한후 반환함
+		// return transfered coordinate
 		PointF tPoint = new PointF();
 		tPoint.set(mX - mWidth / 2, mY - mHeight / 2);
 		return tPoint;
 	}
 
-	// 좌표를 읽어
-	// 그리는 함수를 호출
+	// read coordinate,
+	// call draw function
 	private void interpret(Canvas pCanvas) {
 		// TODO Auto-generated method stub
 		double tAx, tAy, tBx, tBy;
-		beaconEventOccur = BeaconEventFlag.instance();
+		//beaconEventOccur = BeaconEventFlag.instance();
 		
-		tAx=beaconEventOccur.getcurXloc();
-		tAy=beaconEventOccur.getcurYloc();
+		//tAx=beaconEventOccur.getcurXloc();
+		//tAy=beaconEventOccur.getcurYloc();
 		
-	//	tAx = 50;
-	//	tAy = 50;
+		tAx = 35.2348984;
+		tAy = 129.0827668;
 		
 		mPointFList = new ArrayList<PointF>();
 		mPointHashMap = new HashMap<Integer, String>();
@@ -457,7 +463,7 @@ public class AROverlayView extends View implements SensorEventListener {
 		String tFloor;
 		ARData tData;
 
-		// 좌표를 하나씩 읽어 마커를 화면에 그리는 함수 호출
+		// call marker drawing function
 		mDataList = mARHandler.getmDataList();
 		Iterator<ARData> DataIterator = mDataList.iterator();
 		for (int i = 0; i < mDataList.size(); i++) {
@@ -468,21 +474,21 @@ public class AROverlayView extends View implements SensorEventListener {
 				tBy = tData.gety();
 				tFloor = tData.getFloor();
 
-				// 화면에 그림
+				// draw marker
 				tPoint = drawGrid(tAx, tAy, tBx, tBy, pCanvas, mPaint, tName,
 						tFloor);
 
-				// 마커의 화면 위치를 리스트로 저장
-				// 해시맵으로 마커의 번호와 이름을 저장
-				// 마커가 터치되었을때 어떤 마커가 터치 되었는지 확인하기 위함
+				// store screen position of marker to list
+				// store marker number and name to HashMap
+				// check touched marker
 				mPointFList.add(tPoint);
 				mPointHashMap.put(i, tName);
 			}
 		}
 	}
 
-	// 센서가 바뀔때마다 실행됨
-	// 기기의 방향중 X, Y값을 저장하고 오버레이 화면을 다시 그리게 함
+	// execute when sensor changed
+	// store X, Y direction(phone), redraw overlay screen
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		// TODO Auto-generated method stub
@@ -497,13 +503,11 @@ public class AROverlayView extends View implements SensorEventListener {
 		// TODO Auto-generated method stub
 	}
 
-	// 카메라 액티비티가 소멸될때 센서 리스너를 해제
 	// free sensor listener when destroying camera activity
 	public void viewDestory() {
 		mSensorManager.unregisterListener(this);
 	}
 
-	// 카메라 액티비티에서 오버레이 화면 크기를 설정함
 	// set Overlay screen size in camera activity
 	public void setOverlaySize(int width, int height) {
 		// TODO Auto-generated method stub

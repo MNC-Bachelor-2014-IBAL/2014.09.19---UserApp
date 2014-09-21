@@ -56,7 +56,7 @@ public class DeviceScanService extends Service {
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stubc
 		mHandler = new Handler();
 
 		// Use this check to determine whether BLE is supported on the device.

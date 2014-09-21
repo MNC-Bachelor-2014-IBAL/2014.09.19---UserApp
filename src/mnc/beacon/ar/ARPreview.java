@@ -5,7 +5,6 @@ import java.io.IOException;
 import android.content.Context;
 import android.hardware.Camera;
 import android.os.Build;
-import android.os.StrictMode;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -14,7 +13,7 @@ public class ARPreview extends SurfaceView implements
 	private SurfaceHolder mSurfaceHolder;
 	private Camera mCamera;
 
-	// set up Holder that managed Surface view
+	// set Holder that managed Surface view
 	public ARPreview(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub

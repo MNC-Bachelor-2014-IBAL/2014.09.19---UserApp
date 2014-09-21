@@ -26,7 +26,9 @@ public class ARHandler {
 	public static final String THIRD = "THIRD";
 	public static final String FOURTH = "FOURTH";
 	public static final String FIFTH = "FIFTH";
+	public static final String LOCATION = "LOCATION";
 	BeaconEventFlag beaconEventOccur;
+	
 	public ARHandler(Context context) {
 		// TODO Auto-generated constructor stub
 		mContext = context;
@@ -39,9 +41,7 @@ public class ARHandler {
 		Object obj = null;
 		JSONObject j;
 		
-	beaconEventOccur = BeaconEventFlag.instance();
-	
-		
+		beaconEventOccur = BeaconEventFlag.instance();
 		tRecordList = new ArrayList<ARData>();
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
 		.permitAll().build();
@@ -71,14 +71,13 @@ public class ARHandler {
 				Record.setName(j.get("name").toString());
 				Record.setx(Double.parseDouble(j.get("x").toString()));
 				Record.sety(Double.parseDouble(j.get("y").toString()));
-				Record.setLocation(j.get("location").toString());
+				Record.setLocation(j.get("information").toString());
 				tRecordList.add(Record);
 			}
 			else{
-			
-				if(j.get("name").toString().equals(Integer.toString(beaconEventOccur.getCurrentLocation()))){
-					beaconEventOccur.setcurXYloc(Double.parseDouble(j.get("x").toString()), Double.parseDouble(j.get("y").toString()));
-				}
+				//if(j.get("name").toString().equals(Integer.toString(beaconEventOccur.getCurrentLocation()))){
+					//beaconEventOccur.setcurXYloc(Double.parseDouble(j.get("x").toString()), Double.parseDouble(j.get("y").toString()));
+				//}
 			}
 		}
 	}

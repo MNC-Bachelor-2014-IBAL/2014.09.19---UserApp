@@ -81,6 +81,15 @@ public class MainActivity extends Activity {
 		intent2 = new Intent(this, EventCheckExecuteService.class);
 		intent3 = new Intent(this, EventHandlerService.class);
 		
+		
+		
+		Intent intent4 = new Intent(this, CalWeightService.class);
+		
+		
+		startService(intent4);
+		
+		
+		
 		startService(intent);
 		startService(intent1);
 		startService(intent2);
@@ -110,11 +119,15 @@ public class MainActivity extends Activity {
 			break;
 			
 		case R.id.mapBtn:
+			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+			.permitAll().build();
+	StrictMode.setThreadPolicy(policy);
+	
 			Intent intent = new Intent(this, MapView.class);
-			Intent intent1 = new Intent(this, CalWeightService.class);
+			//Intent intent1 = new Intent(this, CalWeightService.class);
 			
 			startActivity(intent);
-			startService(intent1);
+			//startService(intent1);
 			break;
 			
 		}

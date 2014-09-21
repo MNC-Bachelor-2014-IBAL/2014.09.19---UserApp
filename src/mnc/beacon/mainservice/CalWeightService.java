@@ -52,9 +52,8 @@ public class CalWeightService extends Service {
 	private BeaconManager beaconManager;
 	private boolean mScanning;
 	private Handler mHandler;
-	private int cellnum=12;
-	//private int startcellnum;
-
+	private int cellnum = 12;
+	// private int startcellnum;
 
 	private BeaconPacketParser IbeaconData;
 
@@ -69,65 +68,67 @@ public class CalWeightService extends Service {
 		mHandler = new Handler();
 		Log.i("okokok", "okokok");
 		beaconEventOccur = BeaconEventFlag.instance();
-		checkEvent(true);
+		Thread thread = new Thread(runService);
+		thread.start();
 
 		return super.onStartCommand(intent, flags, startId);
 	}
 
-	private void checkEvent(final boolean enable) {
-		if (enable) {
-			// Stops scanning after a pre-defined scan period.
-			mHandler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					Object obj = null;
-					Http requesthttp = new Http();
-					Map requestdata = new HashMap();
-					JSONParser resultParser = new JSONParser();
-					String result = "";
-					String result1 = "";
+	Runnable runService = new Runnable() {
+		@Override
+		public void run() {
+			Object obj = null;
+			Http requesthttp = new Http();
+			Map requestdata = new HashMap();
+			JSONParser resultParser = new JSONParser();
+			String result = "";
+			String result1 = "";
 
-					StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-							.permitAll().build();
-					StrictMode.setThreadPolicy(policy);
+			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+					.permitAll().build();
+			StrictMode.setThreadPolicy(policy);
+			while (true) {
 
-					requestdata.put("request", "data");
+				requestdata.put("request", "data");
 
-					String fingerresult = requesthttp.get(
-							"http://164.125.34.173:8080/calLocation.jsp",
-							requestdata);
-					// 위에서는 kalweight DB에 각 좌표의 weight 저장, currentlocation도 DB에
-					// 따로 저장.
+				String fingerresult = requesthttp.get(
+						"http://164.125.34.173:8080/calLocation.jsp",
+						requestdata);
+				// 위에서는 kalweight DB에 각 좌표의 weight 저장, currentlocation도 DB에
+				// 따로 저장.
 
-					requestdata.put("request", "data");
-					String fingerresult1 = requesthttp.get(
-							"http://164.125.34.173:8080/returnLocation.jsp",
-							requestdata);
+				requestdata.put("request", "data");
+				String fingerresult1 = requesthttp.get(
+						"http://164.125.34.173:8080/returnLocation.jsp",
+						requestdata);
 
-					try {
-						obj = resultParser.parse(fingerresult1);
-					} catch (ParseException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-					JSONObject object = (JSONObject) obj;
-					result = object.get("index").toString();
-					result1 = object.get("rssi").toString();
-					
-					for (int i = 0; i < cellnum; i++) {
-						beaconEventOccur.setWeight(i, Integer.parseInt(object.get("calcell" + Integer.toString(i)).toString()));
-						
-					}
-					beaconEventOccur.setCurrentLocation(Integer.parseInt(result));
-
-					checkEvent(true);
+				try {
+					obj = resultParser.parse(fingerresult1);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-			}, SCAN_PERIOD);
+
+				JSONObject object = (JSONObject) obj;
+				result = object.get("index").toString();
+				result1 = object.get("rssi").toString();
+
+				for (int i = 0; i < cellnum; i++) {
+					beaconEventOccur.setWeight(i, Integer.parseInt(object.get(
+							"calcell" + Integer.toString(i)).toString()));
+
+				}
+				beaconEventOccur.setCurrentLocation(Integer.parseInt(result));
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 
 		}
-
-	}
+	};
 
 	@Override
 	public IBinder onBind(Intent arg0) {

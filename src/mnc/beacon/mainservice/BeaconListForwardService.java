@@ -57,52 +57,64 @@ public class BeaconListForwardService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// TODO Auto-generated method stub
-		mHandler = new Handler();
-		checkEvent(true);
+		//mHandler = new Handler();
+		Thread thread = new Thread(runService);
+		thread.start();
+		//checkEvent(true);
 		return super.onStartCommand(intent, flags, startId);
 	}
-
-	private void checkEvent(final boolean enable) {
-		if (enable) {
-			// Stops scanning after a pre-defined scan period.
-			mHandler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-			
-					Http qq = new Http();
-					Map data1 = new HashMap();
-					beaconManager = BeaconManager.instance();
-					JSONObject sendObject = new JSONObject();
-					JSONArray objArray = new JSONArray();
-					Iterator<BeaconPacket> iterator = beaconManager.beaconList
-							.iterator();
 	
-					while (iterator.hasNext()) {
-						JSONObject obj = new JSONObject();
-						BeaconPacket beacon = iterator.next();
-						obj.put("TIMESTAMP", System.currentTimeMillis());
-						obj.put("UUID", beacon.getUUID());
-						obj.put("MAJOR", beacon.getMajor());
-						obj.put("MINOR", beacon.getMinor());
-						obj.put("TXPOWER", beacon.getPower());
-						obj.put("RSSI", beacon.getRssi());
-						objArray.add(obj);
+	Runnable runService = new Runnable() {
 
-					}
-					
-					sendObject.put("sendData", objArray);
-					data1.put("abc", sendObject);
-					String resul1t = qq.get(
-							"http://164.125.34.173:8080/test.jsp", data1);
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+					.permitAll().build();
+			StrictMode.setThreadPolicy(policy);
+			Http qq = new Http();
 
+			Map data1 = new HashMap();
+			int count = 0;
+			
+			while (true) {
+				beaconManager = BeaconManager.instance();
+				JSONObject sendObject = new JSONObject();
+				JSONArray objArray = new JSONArray();
+				Iterator<BeaconPacket> iterator = beaconManager.beaconList
+						.iterator();
 
-					checkEvent(true);
+				while (iterator.hasNext()) {
+					JSONObject obj = new JSONObject();
+					BeaconPacket beacon = iterator.next();
+					obj.put("TIMESTAMP", System.currentTimeMillis());
+					obj.put("UUID", beacon.getUUID());
+					obj.put("MAJOR", beacon.getMajor());
+					obj.put("MINOR", beacon.getMinor());
+					obj.put("TXPOWER", beacon.getPower());
+					obj.put("RSSI", beacon.getRssi());
+					objArray.add(obj);
+
 				}
-			}, SCAN_PERIOD);
 
+				sendObject.put("sendData", objArray);
+				data1.put("abc", sendObject);
+				String resul1t = qq.get("http://164.125.34.173:8080/test.jsp",
+						data1);
+				count++;
+				//toastClass.setString(""+count);
+				Log.i("kang",count+" " + resul1t );
+				
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 
-	}
+	};
 
 
 	@Override

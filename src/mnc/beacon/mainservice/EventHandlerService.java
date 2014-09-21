@@ -53,54 +53,62 @@ public class EventHandlerService extends Service {
 	private BeaconEventFlag beaconEventFlag;
 	Object obj;
 	private static final int REQUEST_ENABLE_BT = 1;
-	private static final long SCAN_PERIOD = 2000;
+	private static final long SCAN_PERIOD = 200;
 	private ToastClass toastClass;
 	Context context;
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		 
+
 		// TODO Auto-generated method stub
 		mHandler = new Handler();
 		toastClass = ToastClass.instance();
 		beaconEventFlag = BeaconEventFlag.instance();
 		context = getApplicationContext();
-		checkEvent(true);
+		Thread thread = new Thread(runService);
+		thread.start();
 
 		return super.onStartCommand(intent, flags, startId);
 	}
 
-	private void checkEvent(final boolean enable) {
-		if (enable) {
-			// Stops scanning after a pre-defined scan period.
-			mHandler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-							.permitAll().build();
-					StrictMode.setThreadPolicy(policy);
+	Runnable runService = new Runnable() {
+		@Override
+		public void run() {
+			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+					.permitAll().build();
+			StrictMode.setThreadPolicy(policy);
+			while (true) {
 
-					if(beaconEventFlag.firstMapdown == true && beaconEventFlag.startService == true ) {
-						Intent intent2 = new Intent(EventHandlerService.this,CalWeightService.class);
-						startService(intent2);
-					}
-					if(beaconEventFlag.backGround == true && !beaconEventFlag.doService && beaconEventFlag.startService ==true && isScreenOn(context) == false ) {
-						Intent intent = new Intent(EventHandlerService.this , CancelPopupActivity.class);
-						beaconEventFlag.doService = true;
-						
-						intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					
-						
-						startActivity(intent);
-					}
-						else
-					checkEvent(true);
+				if (beaconEventFlag.firstMapdown == true
+						&& beaconEventFlag.startService == true) {
+					Intent intent2 = new Intent(EventHandlerService.this,
+							CalWeightService.class);
+					startService(intent2);
 				}
-			}, SCAN_PERIOD);
+				if (beaconEventFlag.backGround == true
+						&& !beaconEventFlag.doService
+						&& beaconEventFlag.startService == true
+						&& isScreenOn(context) == false) {
+					Intent intent = new Intent(EventHandlerService.this,
+							CancelPopupActivity.class);
+					beaconEventFlag.doService = true;
+
+					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+					startActivity(intent);
+				}
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
 
 		}
 
-	}
+	};
 
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -108,8 +116,10 @@ public class EventHandlerService extends Service {
 
 		return null;
 	}
+
 	public static boolean isScreenOn(Context context) {
-		return ((PowerManager)context.getSystemService(Context.POWER_SERVICE)).isScreenOn();
+		return ((PowerManager) context.getSystemService(Context.POWER_SERVICE))
+				.isScreenOn();
 	}
 
 }

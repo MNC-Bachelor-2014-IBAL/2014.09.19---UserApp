@@ -29,8 +29,8 @@ public class MapView extends Activity {
 	// private double[] xLocation = {560, 760, 560, 760};
 	// private double[] yLocation = {325, 325, 525, 525};
 
-	private double[] xLocation = { 1700, 1450, 1200, 950, 700, 850, 1000, 850, 600, 350, 100 };
-	private double[] yLocation = { 480, 480, 480, 480, 140, 50, 140, 300,480, 480, 480 };
+	private double[] xLocation = { 1700, 1450, 1200, 950, 700, 850, 1000, 850, 600, 350, 100,100 };
+	private double[] yLocation = { 480, 480, 480, 480, 140, 50, 140, 300,480, 480, 480,100 };
 
 	static int weight1;
 	static int weight2;
@@ -59,15 +59,17 @@ public class MapView extends Activity {
 		StrictMode.setThreadPolicy(policy);
 
 		beaconManager = BeaconManager.instance();
-
+/*
 		Http p = new Http();
 		Image img = new Image();
-		/*
-		 * Map data = new HashMap(); data.put("id", "1"); String result =
-		 * p.get("http://164.125.34.173:8080/NewFile.jsp", data); //bm =
-		 * img.DownloadImg(p.getURL());
-		 */
+	
+		  Map data = new HashMap(); data.put("id", "1"); 
+		  String result =p.get("http://164.125.34.173:8080/NewFile.jsp", data); 
+		//  bm =img.DownloadImg(p.getURL());
+		
 		bm = img.DownloadImg("http://164.125.34.173:8080/map.png");
+	*/	
+		
 		MapviewThread thread = new MapviewThread(mHandler);
 		thread.setDaemon(true);
 		thread.start();
@@ -93,23 +95,30 @@ public class MapView extends Activity {
 			textPnt.setStrokeWidth(10);
 
 			Resources res1 = getResources();
+			
+			
 			BitmapDrawable firstfloor = (BitmapDrawable) res1
 					.getDrawable(R.drawable.floor2);
 			Bitmap firstfl = firstfloor.getBitmap();
 
+			
+			
 			BitmapDrawable mylocation = (BitmapDrawable) res1
 					.getDrawable(R.drawable.location2);
 			Bitmap myloc = mylocation.getBitmap();
 
+			
+			
 			BitmapDrawable bd1 = (BitmapDrawable) res1
 					.getDrawable(R.drawable.location2);
 			Bitmap bit1 = bd1.getBitmap();
+			
+			
 			Rect dest = new Rect(0, 0, getWidth(), getHeight());
 
-			canvas.drawBitmap(bm, null, dest, null);
+	canvas.drawBitmap(firstfl, null, dest, null);
 		
 		
-
 				if (drawCondition == 1) {
 					canvas.drawBitmap(bit1, (float) xLocation[0],
 							(float) yLocation[0], null);
@@ -151,11 +160,16 @@ public class MapView extends Activity {
 							(float) yLocation[10], null);
 				} 
 			
+				else if (drawCondition == 12) {
+					canvas.drawBitmap(bit1, (float) xLocation[11],
+					(float) yLocation[11], null);
+				} 
 			for (int i = 0; i < cellnum; ++i) {
-				canvas.drawText("" + currentWeight[i - 1],
-						(float) xLocation[i - 1] + 30,
-						(float) yLocation[i - 1] + 30, textPnt);
+				canvas.drawText("" + currentWeight[i],
+						(float) xLocation[i] + 30,
+						(float) yLocation[i] + 30, textPnt);
 			}
+			
 
 		}
 	}
@@ -199,6 +213,9 @@ public class MapView extends Activity {
 				break;
 			case 11:
 				drawCondition =11;
+				break;
+			case 12:
+				drawCondition =12;
 				break;
 
 			}

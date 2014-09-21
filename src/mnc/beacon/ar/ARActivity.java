@@ -40,7 +40,6 @@ public class ARActivity extends MapActivity {
 		.permitAll().build();
 		StrictMode.setThreadPolicy(policy);
 
-		// 카메라 프리뷰와 카메라 프리뷰 위에 보여줄 카메라 오버레이뷰 생성
 		// create camera Preview and camera Overlay View 
 		mCameraPreview = new ARPreview(this);
 		mOverlayView = new AROverlayView(this);
@@ -50,7 +49,6 @@ public class ARActivity extends MapActivity {
 		int height = display.getHeight();
 
 		// set camera screen rate(2:3)
-		// 2:3 비율로 카메라 화면을 설정(보통의 카메라 사진 크기)
 		mOverlayView.setOverlaySize((int) (height * 1.5), height);
 
 		setContentView(mCameraPreview, new LayoutParams(LayoutParams.MATCH_PARENT,
@@ -59,7 +57,6 @@ public class ARActivity extends MapActivity {
 				LayoutParams.MATCH_PARENT));
 	}
 
-	// 액티비티가 소멸될때  오버레이 뷰의 자원을 해제
 	// free Overlay View when destroying Activity
 	@Override
 	protected void onDestroy() {
@@ -86,6 +83,7 @@ public class ARActivity extends MapActivity {
 		sub.add(0, 3, 0, "Third Floor");
 		sub.add(0, 4, 0, "Fourth Floor");
 		sub.add(0, 5, 0, "Fifth Floor");
+		sub.add(0, 6, 0, "LOCATION");
 		return true;
 	}
 	
@@ -106,6 +104,9 @@ public class ARActivity extends MapActivity {
             return true;   
         case 5:
         	floor = "FIFTH";
+        	return true;
+        case 6:
+        	floor = "LOCATION";
         	return true;
         }
         return false;
